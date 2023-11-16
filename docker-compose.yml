@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  database:
+    container_name: mysql_djouser
+    image: mysql:8.1.0-oracle
+    ports:
+      - "8086:3306"
+    restart: "always"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -u root"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=djouser
+      - MYSQL_USER=carlos
+      - MYSQL_PASSWORD=123456
+      
+    volumes:
+      - "./database:/var/lib/mysql"
+    networks:
+      - djouser
+    deploy:
+      resources: 
+        limits:
+          memory: 300m
+          cpus: "0.3"
+        reservations:
+          memory: 200m
+          cpus: "0.2"
+
+  mysql_admin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8085:80"
+    environment:
+      - PMA_HOST=database
+      - PMA_PORT=3306
+    restart: "always"
+    depends_on:
+      database: 
+        condition: service_healthy
+    networks:
+      - djouser
+    deploy:
+      resources: 
+        limits:
+          memory: 100m
+          cpus: "0.1"
+        reservations:
+          memory: 100m
+          cpus: "0.2"
+
+networks:
+  djouser: {}
